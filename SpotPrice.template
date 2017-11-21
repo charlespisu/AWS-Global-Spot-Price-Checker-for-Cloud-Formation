@@ -10,93 +10,93 @@
       "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
     },
 
-    "InstanceType" : {
-      "Description" : "WebServer EC2 instance type",
+    "SpotInstanceType" : {
+      "Description" : "What instance type do you want to find the lowest priced Region and AZ for?",
       "Type" : "String",
       "Default" : "t2.small",
-      "AllowedValues" : [ "t1.micro", "t2.nano", "t2.micro", "t2.small", "t2.medium", "t2.large", "m1.small", "m1.medium", "m1.large", "m1.xlarge", "m2.xlarge", "m2.2xlarge", "m2.4xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "m4.large"],
+      "AllowedValues" : [ "t1.micro", "t2.nano", "t2.micro", "t2.small", "t2.medium", "t2.large", "m1.small", "m1.medium", "m1.large", "m1.xlarge", "m2.xlarge", "m2.2xlarge", "m2.4xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "c1.medium", "c1.xlarge", "c3.large", "c3.xlarge", "c3.2xlarge", "c3.4xlarge", "c3.8xlarge", "c4.large", "c4.xlarge", "c4.2xlarge", "c4.4xlarge", "c4.8xlarge", "g2.2xlarge", "g2.8xlarge", "r3.large", "r3.xlarge", "r3.2xlarge", "r3.4xlarge", "r3.8xlarge", "i2.xlarge", "i2.2xlarge", "i2.4xlarge", "i2.8xlarge", "d2.xlarge", "d2.2xlarge", "d2.4xlarge", "d2.8xlarge", "hi1.4xlarge", "hs1.8xlarge", "cr1.8xlarge", "cc2.8xlarge", "cg1.4xlarge", "i3.large"],
       "ConstraintDescription" : "must be a valid EC2 instance type."
-    },
-
-    "Wallet" : {
-     "Description" : "Your Minero wallet address",
-     "Type" : "String",
-     "Default" : "49hJ5k9h7g86yGTHYA8X5pgZKU7xS5unwbQkF8oMoCPwFJbkcwaQU9MFtp23ZCAPU3JczVvHQRebtVkumgM9JTjtBTjb2Xm"
-   },
-
-    "OSType" : {
-      "Description" : "Pick an OS to run the miner on",
-      "Type" : "String",
-      "Default" : "Linux",
-      "AllowedValues" : [ "Linux" , "Ubuntu"],
-      "ConstraintDescription": "Only works on these two OS's for now"
     }
-  },
 
-  "Conditions" : {
-    "LinuxOS" : {"Fn::Equals" : [{"Ref" : "OSType"}, "Linux"]},
-    "UbuntuOS": {"Fn::Equals" : [{"Ref" : "OSType"}, "Ubuntu"]}
   },
 
   "Resources" : {
     "EC2Instance" : {
       "Type" : "AWS::EC2::Instance",
-      "Condition" : "LinuxOS",
       "Properties" : {
-        "InstanceType" : { "Ref" : "InstanceType" },
+        "InstanceType" : "t2.nano" ,
         "SecurityGroups" : [ { "Ref" : "InstanceSecurityGroup" } ],
+        "IamInstanceProfile" : { "Ref" : "EC2Role" },
         "KeyName" : { "Ref" : "KeyName" },
-        "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
-                          { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+        "ImageId" : "ami-da05a4a0",
         "UserData" : { "Fn::Base64" : { "Fn::Join" : [ "", [
-                          "#!/bin/bash -xe\n",
-                          "yum -y install git curl-devel libcurl glib-devel libtool screen\n",
-                          "git clone https://github.com/hyc/cpuminer-multi",
-                          "\n",
-                          "cd cpuminer-multi\n",
-                          "./autogen.sh\n",
-                          "CFLAGS=\"-march=native\" ./configure\n",
-                          "make\n",
-                          "sudo ./minerd -a cryptonight -o stratum+tcp://monerohash.com:3333 -p x -u ",
-                          { "Ref" : "Wallet" }, " &"
+                      "#!/bin/bash \n",
+                      "sudo apt-get update \n",
+                      "sudo apt-get install -y automake libcurl4-openssl-dev build-essential libjansson-dev autotools-dev git",
+                      "\n",
+                      "curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -",
+                      "\n",
+                      "sudo apt-get install -y nodejs",
+                      "\n",
+                      "git clone https://github.com/charlespisu/awespottr",
+                      "\n",
+                      "cd awespottr\n",
+                      "sudo npm install -g awespottr\n",
+                      "awespottr i3.large\n"
                       ]]}}
                 }
-
       },
-      "UbuntuMiner" : {
-        "Type" : "AWS::EC2::Instance",
-        "Condition" : "UbuntuOS",
-        "Properties" : {
-          "InstanceType" : { "Ref" : "InstanceType" },
-          "SecurityGroups" : [ { "Ref" : "InstanceSecurityGroup" } ],
-          "KeyName" : { "Ref" : "KeyName" },
-          "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
-                            { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
-          "UserData" : { "Fn::Base64" : { "Fn::Join" : [ "", [
-                            "#!/bin/bash -xe\n",
-                            "yum -y install git curl-devel libcurl glib-devel libtool screen\n",
-                            "git clone https://github.com/hyc/cpuminer-multi",
-                            "\n",
-                            "cd cpuminer-multi\n",
-                            "./autogen.sh\n",
-                            "CFLAGS=\"-march=native\" ./configure\n",
-                            "make\n",
-                            "sudo ./minerd -a cryptonight -o stratum+tcp://monerohash.com:3333 -p x -u ",
-                            { "Ref" : "Wallet" }, " &"
-                        ]]}}
-        }
-    },
 
     "InstanceSecurityGroup" : {
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
-        "GroupDescription" : "Enable SSH access via port 22",
+        "GroupDescription" : "Open All",
         "SecurityGroupIngress" : [ {
           "IpProtocol" : "-1",
           "FromPort": "-1",
           "ToPort": "-1",
           "CidrIp" : "0.0.0.0/0"
         } ]
+      }
+    },
+
+    "EC2Role" : {
+        "Type" : "AWS::IAM::InstanceProfile",
+        "Properties" : {
+          "Path" : "/",
+          "Roles" : [
+            {
+              "Ref" : "SpotRole"
+            }
+          ]
+        }
+      },
+
+    "SpotRole" : {
+      "Type" : "AWS::IAM::Role",
+      "Properties" : {
+        "AssumeRolePolicyDocument": {
+          "Version" : "2012-10-17",
+          "Statement" : [ {
+              "Effect" : "Allow",
+              "Principal" : {
+                "Service" : ["ec2.amazonaws.com"]
+              },
+              "Action" : [ "sts:AssumeRole" ]
+            } ]
+        },
+        "Path" : "/",
+        "Policies": [ {
+               "PolicyName": "root",
+               "PolicyDocument": {
+                  "Version" : "2012-10-17",
+                  "Statement": [ {
+                     "Effect": "Allow",
+                     "Action": "*",
+                     "Resource": "*"
+                  } ]
+               }
+           } ]
       }
     }
   },
@@ -105,22 +105,18 @@
     "InstanceId" : {
       "Description" : "InstanceId of the newly created EC2 instance",
       "Value" : { "Ref" : "EC2Instance" },
-      "Condition" : "LinuxOS"
     },
     "AZ" : {
       "Description" : "Availability Zone of the newly created EC2 instance",
       "Value" : { "Fn::GetAtt" : [ "EC2Instance", "AvailabilityZone" ] },
-      "Condition" : "LinuxOS"
     },
     "PublicDNS" : {
       "Description" : "Public DNSName of the newly created EC2 instance",
       "Value" : { "Fn::GetAtt" : [ "EC2Instance", "PublicDnsName" ] },
-      "Condition" : "LinuxOS"
     },
     "PublicIP" : {
       "Description" : "Public IP address of the newly created EC2 instance",
       "Value" : { "Fn::GetAtt" : [ "EC2Instance", "PublicIp" ] },
-      "Condition" : "LinuxOS"
     }
   },
 
@@ -234,7 +230,8 @@
       "hi1.4xlarge" : { "Arch" : "NATHVM64"  },
       "hs1.8xlarge" : { "Arch" : "NATHVM64"  },
       "cr1.8xlarge" : { "Arch" : "NATHVM64"  },
-      "cc2.8xlarge" : { "Arch" : "NATHVM64"  }
+      "cc2.8xlarge" : { "Arch" : "NATHVM64"  },
+      "i3.large"    : { "Arch" : "NATHVM64"  }
     }
 ,
     "AWSRegionArch2AMI" : {
