@@ -9,3 +9,5 @@ Steps to run:
 5) On Review screen Acknowledge that AWS CloudFormation might create IAM Resources,
 6) Create, wait 2 minutes, then go to EC2, click on instance, and in the top bar select Actions -> Instance Settings -> Get System Log -> Scroll to bottom to see each Instance's spot price for all regions and cheapest spot price globally.
 
+Example Output:
+![Alt text](https://github.com/charlespisu/AWS-Global-Spot-Price-Checker-for-Cloud-Formation/blob/master/Capture.PNG "Example Spot Price Checker Output")
