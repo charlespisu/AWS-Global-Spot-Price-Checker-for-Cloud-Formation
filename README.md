@@ -1,7 +1,7 @@
 # AWS-Global-Spot-Price-Checker-for-Cloud-Formation
 Will tell you the lowest priced region and AZ for each Instance Type you pick in the parameters section.  Outputs can be read in instance logs saving you the need to connect to an instnace or manually run any commands.
 
-Steps to run:
+# Steps to run:
 1) Download locally
 2) Creae Stack in CloudFormation and choose to Upload a template to Amazon S3, select SpotPrice.template from this download.
 3)  Name the stack, provide a Key Pair from the dropdown, select the instance types you want to see the  spot prices for
