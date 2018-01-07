@@ -1,5 +1,5 @@
 # AWS-Global-Spot-Price-Checker-for-Cloud-Formation
-Will tell you the lowest priced region and AZ for each Instance Type you pick in the parameters section.  Outputs can be read in instance logs saving you the need to connect to an instnace or manually run any commands.
+The AWS Global Spot Price Checker Application willl output the lowest priced region and AZ for each Instance Type you pick in the parameters section.  Outputs can be read in instance logs saving you the need to connect to an instnace or manually run any commands.  It can be used to find the AWS region with the cheapest EC2 Spot Instance Price as regions can vary in price by up to 20-30%.
 
 # Steps to run:
 1) Download locally
